@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:JkqxGNeNpQXugYhyZgcjwXskcZpNTOIN@interchange.proxy.rlwy.net:35691/railway"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  avatar    String?
+  items     Item[]
+  createdAt DateTime @default(now())
+  
+  chatsAsA  Chat[]   @relation("UserA")
+  chatsAsB  Chat[]   @relation("UserB")
+  messages  Message[]
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  icon  String
+  items Item[]
+}
+
+model Item {
+  id         Int      @id @default(autoincrement())
+  title      String
+  
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  
+  image      String
+  wants      String
+  
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  
+  distance   String
+  condition  String
+  createdAt  DateTime @default(now())
+  
+  chats      Chat[]
+}
+
+model Chat {
+  id        Int      @id @default(autoincrement())
+  itemId    Int?
+  item      Item?    @relation(fields: [itemId], references: [id])
+  
+  // Participants
+  userAId   Int
+  userA     User     @relation("UserA", fields: [userAId], references: [id])
+  userBId   Int
+  userB     User     @relation("UserB", fields: [userBId], references: [id])
+  
+  messages  Message[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userAId, userBId, itemId])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  chatId    Int
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  
+  senderId  Int
+  sender    User     @relation(fields: [senderId], references: [id])
+  
+  content   String
+  createdAt DateTime @default(now())
+}

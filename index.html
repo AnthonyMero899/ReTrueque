@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReTrueque - Dale una segunda vida</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e', // Green for sustainability
+                            600: '#16a34a',
+                            900: '#14532d',
+                        },
+                        secondary: {
+                            500: '#f59e0b', // Amber for "Exchange/Gold"
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden flex flex-col">
+
+    <!-- ================= NOTIFICATIONS (Toast) ================= -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <!-- ================= VIEW: LOGIN / LANDING ================= -->
+    <section id="login-view"
+        class="flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-brand-50 to-brand-100 w-full h-full absolute top-0 left-0 z-40 transition-transform duration-500">
+
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full fade-in relative overflow-hidden">
+            <!-- Decorative circle -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand-100 rounded-full blur-2xl"></div>
+
+            <div class="text-center mb-8 relative z-10">
+                <div
+                    class="inline-flex items-center justify-center w-16 h-16 bg-brand-100 text-brand-600 rounded-full mb-4">
+                    <i class="fa-solid fa-repeat text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-800">ReTrueque</h1>
+                <p class="text-slate-500 mt-2">Intercambia lo que no usas por lo que necesitas.</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
+                    <input type="email" placeholder="usuario@ejemplo.com"
+                        class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition"
+                        required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+                    <input type="password" placeholder="••••••••"
+                        class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition"
+                        required>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-lg shadow-md transition transform hover:scale-[1.02]">
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-slate-200"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-slate-500">O empieza sin cuenta</span>
+                </div>
+            </div>
+
+            <!-- GUEST BUTTON -->
+            <button onclick="enterAsGuest()"
+                class="w-full bg-white border-2 border-slate-200 text-slate-700 font-semibold py-3 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2 group">
+                <i class="fa-solid fa-user-secret text-slate-400 group-hover:text-slate-600"></i>
+                Explorar como Invitado
+            </button>
+
+            <p class="text-center text-xs text-slate-400 mt-6">
+                Al continuar, aceptas nuestros términos de intercambio justo.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ================= VIEW: DASHBOARD ================= -->
+    <div id="dashboard-view"
+        class="flex-1 flex flex-col h-full bg-slate-50 hidden opacity-0 transition-opacity duration-500">
+
+        <!-- Navbar -->
+        <nav
+            class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="resetApp()">
+                <div class="w-8 h-8 bg-brand-600 text-white rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-repeat"></i>
+                </div>
+                <span class="font-bold text-xl hidden sm:block text-slate-800">ReTrueque</span>
+            </div>
+
+            <!-- Search Bar (Desktop/Tablet) -->
+            <div class="hidden md:flex flex-1 max-w-lg mx-8 relative">
+                <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400"></i>
+                <input type="text" placeholder="¿Qué estás buscando? (ej. Bici, Libro...)"
+                    class="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full focus:ring-2 focus:ring-brand-200 outline-none">
+            </div>
+
+            <!-- User Actions -->
+            <div class="flex items-center gap-3" id="nav-user-area">
+                <!-- Content injected via JS based on Login State -->
+            </div>
+        </nav>
+
+        <!-- Main Content Layout -->
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- Sidebar Filters (Desktop) -->
+            <aside class="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col p-6 overflow-y-auto">
+                <h3 class="font-bold text-slate-800 mb-4">Categorías</h3>
+                <ul class="space-y-2 text-sm" id="category-list">
+                    <!-- Categories injected JS -->
+                </ul>
+
+                <h3 class="font-bold text-slate-800 mt-8 mb-4">Ubicación</h3>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked class="text-brand-600 rounded focus:ring-brand-500">
+                        <span class="text-slate-600 text-sm">En mi ciudad</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="text-brand-600 rounded focus:ring-brand-500">
+                        <span class="text-slate-600 text-sm">Envíos nacionales</span>
+                    </label>
+                </div>
+            </aside>
+
+            <!-- Product Grid Area -->
+            <main class="flex-1 overflow-y-auto p-4 md:p-8">
+
+                <!-- Mobile Category Scroll -->
+                <div class="lg:hidden flex gap-3 overflow-x-auto pb-4 mb-4 scrollbar-hide">
+                    <button
+                        class="px-4 py-2 bg-brand-600 text-white rounded-full text-sm whitespace-nowrap">Todos</button>
+                    <button
+                        class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-full text-sm whitespace-nowrap">Ropa</button>
+                    <button
+                        class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-full text-sm whitespace-nowrap">Electrónica</button>
+                    <button
+                        class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-full text-sm whitespace-nowrap">Muebles</button>
+                </div>
+
+                <!-- Hero Banner (Only for guests or empty states) -->
+                <div id="welcome-banner"
+                    class="bg-gradient-to-r from-brand-600 to-emerald-500 rounded-2xl p-6 md:p-10 mb-8 text-white flex flex-col md:flex-row items-center justify-between shadow-lg relative overflow-hidden">
+                    <div class="relative z-10 max-w-lg">
+                        <h2 class="text-2xl md:text-3xl font-bold mb-2">¡Dale valor a lo que ya no usas!</h2>
+                        <p class="text-brand-100 mb-6">Sube tus objetos y encuentra tesoros en tu comunidad sin gastar
+                            dinero.</p>
+                        <button onclick="triggerUpload()"
+                            class="bg-white text-brand-600 px-6 py-2 rounded-lg font-semibold shadow hover:bg-brand-50 transition">
+                            Subir un objeto ahora
+                        </button>
+                    </div>
+                    <!-- Decorative Icon -->
+                    <i class="fa-solid fa-boxes-packing text-9xl absolute -right-4 -bottom-8 opacity-20 rotate-12"></i>
+                </div>
+
+                <!-- Section Title -->
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-slate-800">Recién Agregados</h2>
+                    <select class="bg-white border border-slate-200 text-sm rounded-lg px-3 py-1 outline-none">
+                        <option>Más recientes</option>
+                        <option>Más cercanos</option>
+                    </select>
+                </div>
+
+                <!-- The Grid -->
+                <div id="items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                    <!-- Items injected via JS -->
+                </div>
+            </main>
+        </div>
+
+        <!-- Floating Action Button (Mobile) -->
+        <button onclick="triggerUpload()"
+            class="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-brand-700 transition z-40">
+            <i class="fa-solid fa-plus text-xl"></i>
+        </button>
+
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Auth Required Modal -->
+    <div id="auth-modal"
+        class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl scale-95 opacity-0 transition-all duration-300 transform"
+            id="auth-modal-content">
+            <div
+                class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-lock text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Cuenta Requerida</h3>
+            <p class="text-slate-500 mb-6 text-sm">Para proponer un intercambio o subir productos, necesitas ser parte
+                de la comunidad.</p>
+            <div class="flex flex-col gap-3">
+                <button onclick="logout()"
+                    class="w-full bg-brand-600 text-white py-2.5 rounded-lg font-medium hover:bg-brand-700 transition">
+                    Crear cuenta o Iniciar sesión
+                </button>
+                <button onclick="closeModal('auth-modal')"
+                    class="w-full bg-slate-100 text-slate-600 py-2.5 rounded-lg font-medium hover:bg-slate-200 transition">
+                    Seguir mirando
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            isLoggedIn: false,
+            user: null, // { name: 'Alex', avatar: '...' }
+            items: generateItems()
+        };
+
+        const categories = [
+            { name: 'Todos', icon: 'fa-layer-group', active: true },
+            { name: 'Ropa y Accesorios', icon: 'fa-shirt', active: false },
+            { name: 'Tecnología', icon: 'fa-laptop', active: false },
+            { name: 'Hogar y Muebles', icon: 'fa-couch', active: false },
+            { name: 'Libros', icon: 'fa-book', active: false },
+            { name: 'Deportes', icon: 'fa-bicycle', active: false },
+            { name: 'Instrumentos', icon: 'fa-guitar', active: false },
+        ];
+
+        // --- Mock Data Generator ---
+        function generateItems() {
+            return [
+                {
+                    id: 1,
+                    title: 'Bicicleta Vintage Restaurada',
+                    category: 'Deportes',
+                    image: 'https://images.unsplash.com/photo-1485965120184-e224f723d621?auto=format&fit=crop&q=80&w=500',
+                    wants: 'Guitarra acústica o Mueble de TV',
+                    user: 'María G.',
+                    distance: '2 km',
+                    condition: 'Excelente'
+                },
+                {
+                    id: 2,
+                    title: 'Cámara Polaroid Antigua',
+                    category: 'Tecnología',
+                    image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&q=80&w=500',
+                    wants: 'Libros de arte o Vinilos',
+                    user: 'Juan P.',
+                    distance: '5 km',
+                    condition: 'Usado'
+                },
+                {
+                    id: 3,
+                    title: 'Sillón Amarillo Mid-Century',
+                    category: 'Hogar',
+                    image: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&q=80&w=500',
+                    wants: 'Mesa de comedor pequeña',
+                    user: 'Lucía R.',
+                    distance: '10 km',
+                    condition: 'Como nuevo'
+                },
+                {
+                    id: 4,
+                    title: 'Colección Harry Potter (Tapa dura)',
+                    category: 'Libros',
+                    image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=500',
+                    wants: 'Juegos de mesa o Plantas',
+                    user: 'Carlos M.',
+                    distance: '1.5 km',
+                    condition: 'Bueno'
+                },
+                {
+                    id: 5,
+                    title: 'Chaqueta de Mezclilla Oversize',
+                    category: 'Ropa',
+                    image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&q=80&w=500',
+                    wants: 'Zapatillas Talla 38',
+                    user: 'Ana S.',
+                    distance: '3 km',
+                    condition: 'Usado'
+                },
+                {
+                    id: 6,
+                    title: 'Teclado Mecánico RGB',
+                    category: 'Tecnología',
+                    image: 'https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&q=80&w=500',
+                    wants: 'Monitor 24" o Silla de escritorio',
+                    user: 'Dev D.',
+                    distance: '8 km',
+                    condition: 'Excelente'
+                }
+            ];
+        }
+
+        // --- Core Functions ---
+
+        function handleLogin(e) {
+            e.preventDefault();
+            // Simulate API Call
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Verificando...';
+            btn.classList.add('opacity-75');
+
+            setTimeout(() => {
+                state.isLoggedIn = true;
+                state.user = {
+                    name: 'Alex',
+                    email: 'alex@demo.com',
+                    avatar: 'https://ui-avatars.com/api/?name=Alex+User&background=22c55e&color=fff'
+                };
+                showDashboard();
+                showToast('¡Bienvenido de nuevo, Alex!', 'success');
+                btn.innerText = originalText;
+                btn.classList.remove('opacity-75');
+            }, 800);
+        }
+
+        function enterAsGuest() {
+            state.isLoggedIn = false;
+            state.user = null;
+            showDashboard();
+            showToast('Navegando como invitado', 'info');
+        }
+
+        function showDashboard() {
+            // Hide Login
+            const loginView = document.getElementById('login-view');
+            loginView.style.transform = 'translateY(-100%)';
+            setTimeout(() => {
+                loginView.classList.add('hidden');
+                loginView.style.transform = 'translateY(0)';
+            }, 500);
+
+            // Show Dashboard
+            const dashboard = document.getElementById('dashboard-view');
+            dashboard.classList.remove('hidden');
+            setTimeout(() => dashboard.classList.remove('opacity-0'), 50);
+
+            renderNavbar();
+            renderCategories();
+            renderGrid();
+        }
+
+        function logout() {
+            // Reset Views
+            const dashboard = document.getElementById('dashboard-view');
+            dashboard.classList.add('opacity-0');
+
+            setTimeout(() => {
+                dashboard.classList.add('hidden');
+                document.getElementById('login-view').classList.remove('hidden');
+                // Reset form
+                document.getElementById('login-form').reset();
+            }, 500);
+
+            closeModal('auth-modal');
+            state.isLoggedIn = false;
+            state.user = null;
+        }
+
+        // --- Rendering ---
+
+        function renderNavbar() {
+            const navArea = document.getElementById('nav-user-area');
+
+            if (state.isLoggedIn) {
+                navArea.innerHTML = `
+                    <button class="relative p-2 text-slate-500 hover:text-brand-600 transition">
+                        <i class="fa-regular fa-bell text-xl"></i>
+                        <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    </button>
+                    <button class="hidden md:flex items-center gap-2 bg-slate-100 hover:bg-slate-200 py-1.5 px-3 rounded-full transition" onclick="triggerUpload()">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span class="text-sm font-medium text-slate-700">Subir</span>
+                    </button>
+                    <div class="h-8 w-px bg-slate-200 mx-1"></div>
+                    <div class="flex items-center gap-2 cursor-pointer group relative" onclick="logout()">
+                        <img src="${state.user.avatar}" class="w-9 h-9 rounded-full border border-slate-200" alt="Avatar">
+                        <div class="hidden sm:block text-sm text-left">
+                            <p class="font-bold text-slate-700 leading-none">${state.user.name}</p>
+                            <p class="text-xs text-slate-400">Nivel 2</p>
+                        </div>
+                        <div class="absolute top-10 right-0 bg-white shadow-lg rounded-lg p-2 w-32 hidden group-hover:block border border-slate-100">
+                            <div class="text-xs text-red-500 font-bold p-2 hover:bg-red-50 rounded">Cerrar Sesión</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                navArea.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider border border-slate-200 px-2 py-1 rounded hidden sm:inline-block">Modo Invitado</span>
+                        <button onclick="logout()" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold py-2 px-5 rounded-full shadow-md transition">
+                            Ingresar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderCategories() {
+            const list = document.getElementById('category-list');
+            list.innerHTML = categories.map(cat => `
+                <li class="flex items-center gap-3 p-2 rounded-lg cursor-pointer transition ${cat.active ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}">
+                    <i class="fa-solid ${cat.icon} w-5 text-center ${cat.active ? 'text-brand-600' : 'text-slate-400'}"></i>
+                    ${cat.name}
+                </li>
+            `).join('');
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('items-grid');
+            grid.innerHTML = state.items.map(item => `
+                <div class="group bg-white border border-slate-100 rounded-xl overflow-hidden hover:shadow-xl transition duration-300 flex flex-col h-full relative">
+                    <!-- Image -->
+                    <div class="relative h-48 overflow-hidden bg-slate-100">
+                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                            <i class="fa-solid fa-location-dot mr-1"></i>${item.distance}
+                        </span>
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-8">
+                             <span class="text-white text-xs font-medium px-2 py-0.5 rounded bg-brand-500/80">${item.condition}</span>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-4 flex-1 flex flex-col">
+                        <div class="flex-1">
+                            <div class="text-xs text-slate-400 mb-1 uppercase tracking-wide font-semibold">${item.category}</div>
+                            <h3 class="font-bold text-slate-800 text-lg leading-tight mb-2 group-hover:text-brand-600 transition">${item.title}</h3>
+                            
+                            <div class="bg-amber-50 rounded-lg p-2 mb-3 border border-amber-100">
+                                <p class="text-xs text-amber-700 font-bold uppercase mb-1">Busca a cambio:</p>
+                                <p class="text-sm text-slate-700 line-clamp-2">${item.wants}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500 font-bold">
+                                    ${item.user.charAt(0)}
+                                </div>
+                                <span class="text-xs text-slate-500">${item.user}</span>
+                            </div>
+                            <button onclick="triggerTrade(${item.id})" class="text-sm bg-brand-50 text-brand-700 hover:bg-brand-600 hover:text-white px-3 py-1.5 rounded-lg font-medium transition">
+                                <i class="fa-solid fa-right-left mr-1"></i> Ofertar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Interaction Logic ---
+
+        function triggerTrade(itemId) {
+            if (!state.isLoggedIn) {
+                openModal('auth-modal');
+            } else {
+                const item = state.items.find(i => i.id === itemId);
+                showToast(`Iniciando chat de intercambio por: ${item.title}`, 'success');
+            }
+        }
+
+        function triggerUpload() {
+            if (!state.isLoggedIn) {
+                openModal('auth-modal');
+            } else {
+                showToast('Abriendo formulario de publicación...', 'info');
+            }
+        }
+
+        // --- Modal System ---
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            const content = modal.querySelector('div[class*="bg-white"]');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            const content = modal.querySelector('div[class*="bg-white"]');
+
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // --- Toast Notifications ---
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            // Colors
+            const colors = {
+                success: 'bg-emerald-500 text-white',
+                error: 'bg-red-500 text-white',
+                info: 'bg-slate-800 text-white'
+            };
+
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                info: 'fa-info-circle'
+            };
+
+            toast.className = `${colors[type]} px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-x-10 opacity-0 min-w-[300px]`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icons[type]}"></i>
+                <span class="font-medium text-sm">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-10', 'opacity-0');
+            });
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-x-10');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Close Modal on outside click
+        window.onclick = function (event) {
+            const modal = document.getElementById('auth-modal');
+            if (event.target === modal) {
+                closeModal('auth-modal');
+            }
+        }
+
+    </script>
+</body>
+
+</html>
