@@ -244,6 +244,13 @@ app.post('/api/messages', async (req, res) => {
     }
 });
 
+app.get('/', (req, res) => {
+    res.json({
+        message: 'ReTrueque API is running 🚀',
+        time: new Date().toISOString()
+    });
+});
+
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
