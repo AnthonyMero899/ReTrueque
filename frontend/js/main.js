@@ -1,5 +1,6 @@
 // --- Configuration ---
 const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000/api';
+console.log('🔌 Conectando a:', API_URL);
 
 // --- State Management ---
 const state = {
