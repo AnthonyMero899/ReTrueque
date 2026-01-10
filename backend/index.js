@@ -244,11 +244,14 @@ app.post('/api/messages', async (req, res) => {
     }
 });
 
-app.get('/', (req, res) => {
-    res.json({
-        message: 'ReTrueque API is running 🚀',
-        time: new Date().toISOString()
-    });
+// --- Serve Frontend (Static) ---
+const path = require('path');
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Handle SPA routing: return index.html for any unknown route
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 if (require.main === module) {
