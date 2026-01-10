@@ -23,10 +23,11 @@ WORKDIR /app
 
 # Copiar dependencias backend
 COPY backend/package*.json ./
-RUN npm install
 
-# Copiar esquema Prisma y generar cliente
+# Copiar esquema Prisma (Necesario para el postinstall script 'prisma generate')
 COPY backend/prisma ./prisma/
+
+RUN npm install
 RUN npx prisma generate
 
 # Copiar código fuente backend
